@@ -1,16 +1,29 @@
 {
   "name": "flit",
   "version": "1.0.0",
+  "private": true,
+  "description": "Gestion d'inventaire Star Citizen via Discord et interface Next.js",
+  "author": "cptnchoco",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cptnchoco/flit.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "audit": "npm audit",
+    "audit:fix": "npm audit fix --force"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.0.0",
-    "next": "^15.3.4",
-    "next-auth": "^4.0.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "@supabase/supabase-js": "2.24.0",
+    "next": "13.5.2",
+    "next-auth": "4.22.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   }
 }
