@@ -1,33 +1,81 @@
-import Layout from '../components/Layout'
+// pages/logs.js
 
-export default function Home() {
-  return (
-    <Layout>
-      <h1>Bienvenue sur FLIT</h1>
-      <p>Gère ton inventaire Star Citizen depuis Discord</p>
-    </Layout>
-  )
-}
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import Layout from '../components/Layout'
 import Table from '../components/Table'
 
 export default function Logs() {
-  const [logs, setLogs] = useState([])
+  const { data: session, status } = useSession()
+  const [logs, setLogs]       = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError]     = useState(null)
 
+  // 1. Affichage pendant la vérification de la session
+  if (status === 'loading') {
+    return (
+      <Layout>
+        <p>Chargement…</p>
+      </Layout>
+    )
+  }
+
+  // 2. Bloquer l’accès si non connecté
+  if (!session) {
+    return (
+      <Layout>
+        <p>⚠️ Connectez-vous pour voir vos logs.</p>
+      </Layout>
+    )
+  }
+
+  // 3. Récupérer les logs au chargement
   useEffect(() => {
-    fetch('/api/flit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'logs', userId: 'ton_id' })
-    })
-    .then(r => r.json())
-    .then(({ data }) => setLogs(data))
+    const fetchLogs = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await fetch('/api/flit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'logs' })
+        })
+        const json = await res.json()
+        if (!res.ok || json.success === false) {
+          throw new Error(json.error || 'Erreur de récupération des logs')
+        }
+        setLogs(json.data)
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchLogs()
   }, [])
 
   return (
-    <div>
+    <Layout>
       <h2>Logs d’inventaire</h2>
-      <Table data={logs} columns={['item', 'qty', 'user_id']} />
-    </div>
+
+      {error && (
+        <p style={{ color: 'red', marginBottom: '1rem' }}>
+          {error}
+        </p>
+      )}
+
+      {loading ? (
+        <p>Chargement des logs…</p>
+      ) : (
+        <Table
+          data={logs}
+          columns={[
+            { key: 'item',       label: 'Item' },
+            { key: 'qty',        label: 'Quantité' },
+            { key: 'inserted_at', label: 'Date' }
+          ]}
+        />
+      )}
+    </Layout>
   )
 }

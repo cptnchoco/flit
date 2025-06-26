@@ -1,42 +1,61 @@
 // pages/transfert.js
+
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import Layout from '../components/Layout'
 import Form from '../components/Form'
 
 export default function Transfert() {
-  const { data: session } = useSession()
-  const [status, setStatus] = useState(null)
+  const { data: session, status: authStatus } = useSession()
+  const [message, setMessage] = useState('')
+  
+  // 1. Affichage durant la vérification de la session
+  if (authStatus === 'loading') {
+    return (
+      <Layout>
+        <p>Chargement…</p>
+      </Layout>
+    )
+  }
 
-  // Définis les champs du formulaire
+  // 2. Accès réservé aux utilisateurs connectés
+  if (!session) {
+    return (
+      <Layout>
+        <p>⚠️ Connectez-vous pour transférer un item.</p>
+      </Layout>
+    )
+  }
+
+  // 3. Champs du formulaire
   const transferFields = [
-    { label: "Nom de l’item",      name: "item",     type: "text"   },
-    { label: "Quantité",           name: "qty",      type: "number" },
-    { label: "ID Discord cible",   name: "targetId", type: "text"   }
+    { label: "Nom de l’item",    name: "item",     type: "text"   },
+    { label: "Quantité",         name: "qty",      type: "number" },
+    { label: "ID Discord cible", name: "targetId", type: "text"   }
   ]
 
-  // Fonction appelée au submit
-  const handleTransfer = async (values) => {
-    if (!session?.user?.id) {
-      setStatus("Erreur : non connecté")
-      return
-    }
-    const payload = {
-      action:   "transfert",
-      userId:   session.user.id,
-      ...values
-    }
+  // 4. Handler de transfert
+  const handleTransfer = async ({ item, qty, targetId }) => {
+    setMessage('')
     try {
       const res = await fetch('/api/flit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          action:   'transfert',
+          userId:   session.user.id,
+          item,
+          qty,
+          targetId
+        })
       })
       const json = await res.json()
-      if (res.ok) setStatus(json.message)
-      else       setStatus(json.error || "Erreur serveur")
+      if (!res.ok || json.success === false) {
+        throw new Error(json.error || 'Erreur lors du transfert')
+      }
+      setMessage(`✅ ${json.data.message}`)
     } catch (err) {
-      setStatus(err.message)
+      setMessage(`❌ ${err.message}`)
     }
   }
 
@@ -48,8 +67,18 @@ export default function Transfert() {
         onSubmit={handleTransfer}
         submitLabel="Transférer"
       />
-      {status && <p style={{ marginTop: '1rem' }}>{status}</p>}
+      {message && (
+        <p style={{
+          marginTop: '1rem',
+          padding: '.6rem 1rem',
+          background: message.startsWith('✅') ? '#e6ffed' : '#ffe6e6',
+          border: message.startsWith('✅') ? '1px solid #a3f7b5' : '1px solid #f5c2c7',
+          borderRadius: 4,
+          color: message.startsWith('✅') ? '#2e7d32' : '#721c24'
+        }}>
+          {message}
+        </p>
+      )}
     </Layout>
   )
 }
-

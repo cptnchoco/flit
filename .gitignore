@@ -1,3 +1,37 @@
+# Node.js
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Next.js
 .next/
+out/
+build/
+
+# Envs
 .env.local
+.env.*.local   # ignore tous les .env.*.local (dev, test, prod locaux)
+.env            # si tu ne versionnes jamais tes .env
+
+# Logs
+logs/
+*.log
+pids/
+*.pid
+
+# OS & IDEs
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Misc
+coverage/
+dist/
+.cache/
