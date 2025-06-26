@@ -1,0 +1,8 @@
+export default function Layout({ children }) {
+    return (
+      <div style={{ margin: '0 auto', maxWidth: 800, padding: 20 }}>
+        {children}
+      </div>
+    )
+  }
+  
