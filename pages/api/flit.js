@@ -2,6 +2,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from './auth/[...nextauth]'
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 // côté serveur avec les droits Service Role
 const supabaseAdmin = createClient(
