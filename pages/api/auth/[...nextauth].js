@@ -7,11 +7,12 @@ import { SupabaseAdapter } from '@next-auth/supabase-adapter'
 import { createClient } from '@supabase/supabase-js'
 
 // 1) Initialise le client Supabase avec ta Service Role Key (côté serveur)
-const supabaseServerClient = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )  
-  
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 // 2) Export nommé pour pouvoir le réutiliser ailleurs (API routes, getServerSideProps…)
 export const authOptions = {
   adapter: SupabaseAdapter(supabaseServerClient),
