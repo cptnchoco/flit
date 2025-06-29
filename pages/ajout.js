@@ -1,78 +1,71 @@
 // pages/ajout.js
 
 import { useState } from 'react'
-import { useSession } from 'next-auth/react'
 import Layout from '../components/Layout'
 import Form from '../components/Form'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from './api/auth/[...nextauth]'
 
-export default function Ajout() {
-  const { data: session, status: authStatus } = useSession()
+// 1) Vérification de session en SSR
+export async function getServerSideProps(ctx) {
+  const session = await getServerSession(ctx.req, ctx.res, authOptions)
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/api/auth/signin',
+        permanent: false
+      }
+    }
+  }
+  return { props: { session } }
+}
+
+export default function Ajout({ session }) {
   const [message, setMessage] = useState('')
 
-  // 1. Afficher un loader tant que NextAuth vérifie la session
-  if (authStatus === 'loading') {
-    return (
-      <Layout>
-        <p>Chargement…</p>
-      </Layout>
-    )
-  }
-
-  // 2. Forcer la connexion
-  if (!session) {
-    return (
-      <Layout>
-        <p>⚠️ Vous devez être connecté·e pour ajouter un item.</p>
-      </Layout>
-    )
-  }
-
-  // 3. Soumettre l’ajout
+  // 2) Soumettre l’ajout via l’API
   const handleSubmit = async ({ item, qty }) => {
-    const payload = {
-      action: 'ajout',
-      userId: session.user.id,
-      item,
-      qty
+    setMessage('') // reset
+    try {
+      const res = await fetch('/api/flit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'ajout',
+          userId: session.user.id,
+          item,
+          qty
+        })
+      })
+      const json = await res.json()
+      if (!res.ok || json.success === false) {
+        throw new Error(json.error || 'Erreur lors de l’ajout')
+      }
+      setMessage(json.data.message || 'Item ajouté avec succès !')
+    } catch (err) {
+      setMessage(`❌ ${err.message}`)
     }
-
-    const res = await fetch('/api/flit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    const json = await res.json()
-
-    // Gérer les erreurs
-    if (!res.ok || json.success === false) {
-      throw new Error(json.error || 'Erreur lors de l’ajout')
-    }
-
-    // Afficher un message de succès
-    setMessage(json.data.message || 'Item ajouté avec succès !')
   }
 
   return (
     <Layout>
       <h2>Ajouter un item à votre inventaire</h2>
 
-      <Form
-        onSubmit={handleSubmit}
-        submitLabel="Ajouter"
-      />
+      <Form onSubmit={handleSubmit} submitLabel="Ajouter" />
 
       {message && (
         <p
           style={{
             marginTop: '1rem',
             padding: '.6rem 1rem',
-            background: '#e6ffed',
-            border: '1px solid #a3f7b5',
+            background: message.startsWith('❌') ? '#ffe6e6' : '#e6ffed',
+            border: '1px solid',
+            borderColor: message.startsWith('❌') ? '#f7b5b5' : '#a3f7b5',
             borderRadius: 4,
-            color: '#2e7d32'
+            color: message.startsWith('❌') ? '#c62828' : '#2e7d32'
           }}
         >
-          ✅ {message}
+          {message}
         </p>
       )}
     </Layout>

@@ -1,35 +1,34 @@
 // pages/logs.js
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
 import Layout from '../components/Layout'
 import Table from '../components/Table'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from './api/auth/[...nextauth]'
 
-export default function Logs() {
-  const { data: session, status } = useSession()
+// 1) Server‐side session check & redirect if not signed in
+export async function getServerSideProps(ctx) {
+  const session = await getServerSession(ctx.req, ctx.res, authOptions)
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/api/auth/signin',
+        permanent: false
+      }
+    }
+  }
+
+  return {
+    props: { session }
+  }
+}
+
+export default function Logs({ session }) {
   const [logs, setLogs]       = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState(null)
 
-  // 1. Affichage pendant la vérification de la session
-  if (status === 'loading') {
-    return (
-      <Layout>
-        <p>Chargement…</p>
-      </Layout>
-    )
-  }
-
-  // 2. Bloquer l’accès si non connecté
-  if (!session) {
-    return (
-      <Layout>
-        <p>⚠️ Connectez-vous pour voir vos logs.</p>
-      </Layout>
-    )
-  }
-
-  // 3. Récupérer les logs au chargement
+  // 2) Fetch logs once session is guaranteed
   useEffect(() => {
     const fetchLogs = async () => {
       setLoading(true)
@@ -70,8 +69,8 @@ export default function Logs() {
         <Table
           data={logs}
           columns={[
-            { key: 'item',       label: 'Item' },
-            { key: 'qty',        label: 'Quantité' },
+            { key: 'item',        label: 'Item' },
+            { key: 'qty',         label: 'Quantité' },
             { key: 'inserted_at', label: 'Date' }
           ]}
         />

@@ -1,40 +1,35 @@
 // pages/transfert.js
 
 import { useState } from 'react'
-import { useSession } from 'next-auth/react'
 import Layout from '../components/Layout'
 import Form from '../components/Form'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from './api/auth/[...nextauth]'
 
-export default function Transfert() {
-  const { data: session, status: authStatus } = useSession()
-  const [message, setMessage] = useState('')
-  
-  // 1. Affichage durant la vérification de la session
-  if (authStatus === 'loading') {
-    return (
-      <Layout>
-        <p>Chargement…</p>
-      </Layout>
-    )
-  }
-
-  // 2. Accès réservé aux utilisateurs connectés
+// 1) Vérification de session en SSR
+export async function getServerSideProps(ctx) {
+  const session = await getServerSession(ctx.req, ctx.res, authOptions)
   if (!session) {
-    return (
-      <Layout>
-        <p>⚠️ Connectez-vous pour transférer un item.</p>
-      </Layout>
-    )
+    return {
+      redirect: {
+        destination: '/api/auth/signin',
+        permanent: false
+      }
+    }
   }
+  return { props: { session } }
+}
 
-  // 3. Champs du formulaire
+export default function Transfert({ session }) {
+  const [message, setMessage] = useState('')
+
   const transferFields = [
     { label: "Nom de l’item",    name: "item",     type: "text"   },
     { label: "Quantité",         name: "qty",      type: "number" },
     { label: "ID Discord cible", name: "targetId", type: "text"   }
   ]
 
-  // 4. Handler de transfert
+  // 2) Handler de transfert
   const handleTransfer = async ({ item, qty, targetId }) => {
     setMessage('')
     try {
@@ -62,11 +57,13 @@ export default function Transfert() {
   return (
     <Layout>
       <h2>Transférer un item</h2>
+
       <Form
         fields={transferFields}
         onSubmit={handleTransfer}
         submitLabel="Transférer"
       />
+
       {message && (
         <p style={{
           marginTop: '1rem',

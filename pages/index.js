@@ -1,21 +1,12 @@
 // pages/index.js
 
-import { useSession, signIn, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import Layout from '../components/Layout'
+import { signIn, signOut } from 'next-auth/react'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from './api/auth/[...nextauth]'
 
-export default function Home() {
-  const { data: session, status } = useSession()
-
-  // 1. Affichage pendant la récupération de la session
-  if (status === 'loading') {
-    return (
-      <Layout>
-        <p>Chargement de votre session…</p>
-      </Layout>
-    )
-  }
-
+export default function Home({ session }) {
   return (
     <Layout>
       <header style={{ marginBottom: '2rem' }}>
@@ -64,63 +55,65 @@ export default function Home() {
       </p>
 
       <nav style={{ marginTop: '2rem', display: 'grid', gap: '1rem' }}>
-        <Link href="/ajout">
-          <a
-            style={{
-              padding: '1rem',
-              background: '#3182ce',
-              color: '#fff',
-              borderRadius: 4,
-              textAlign: 'center',
-              textDecoration: 'none'
-            }}
-          >
-            ➕ Ajouter un item
-          </a>
+        <Link
+          href="/ajout"
+          style={{
+            padding: '1rem',
+            background: '#3182ce',
+            color: '#fff',
+            borderRadius: 4,
+            textAlign: 'center',
+            textDecoration: 'none'
+          }}
+        >
+          ➕ Ajouter un item
         </Link>
-        <Link href="/retrait">
-          <a
-            style={{
-              padding: '1rem',
-              background: '#dd6b20',
-              color: '#fff',
-              borderRadius: 4,
-              textAlign: 'center',
-              textDecoration: 'none'
-            }}
-          >
-            ➖ Retirer un item
-          </a>
+        <Link
+          href="/retrait"
+          style={{
+            padding: '1rem',
+            background: '#dd6b20',
+            color: '#fff',
+            borderRadius: 4,
+            textAlign: 'center',
+            textDecoration: 'none'
+          }}
+        >
+          ➖ Retirer un item
         </Link>
-        <Link href="/transfert">
-          <a
-            style={{
-              padding: '1rem',
-              background: '#38a169',
-              color: '#fff',
-              borderRadius: 4,
-              textAlign: 'center',
-              textDecoration: 'none'
-            }}
-          >
-            🔄 Transférer un item
-          </a>
+        <Link
+          href="/transfert"
+          style={{
+            padding: '1rem',
+            background: '#38a169',
+            color: '#fff',
+            borderRadius: 4,
+            textAlign: 'center',
+            textDecoration: 'none'
+          }}
+        >
+          🔄 Transférer un item
         </Link>
-        <Link href="/logs">
-          <a
-            style={{
-              padding: '1rem',
-              background: '#805ad5',
-              color: '#fff',
-              borderRadius: 4,
-              textAlign: 'center',
-              textDecoration: 'none'
-            }}
-          >
-            📜 Voir les logs
-          </a>
+        <Link
+          href="/logs"
+          style={{
+            padding: '1rem',
+            background: '#805ad5',
+            color: '#fff',
+            borderRadius: 4,
+            textAlign: 'center',
+            textDecoration: 'none'
+          }}
+        >
+          📜 Voir les logs
         </Link>
       </nav>
     </Layout>
   )
+}
+
+// Récupère la session côté serveur pour éviter l’usage de useSession() au build
+export async function getServerSideProps(ctx) {
+  const session = await getServerSession(ctx.req, ctx.res, authOptions)
+  return { props: { session } }
 }
