@@ -3,7 +3,6 @@
 import NextAuth from 'next-auth'
 import DiscordProvider from 'next-auth/providers/discord'
 import { SupabaseAdapter } from '@next-auth/supabase-adapter'
-import DiscordProvider from 'next-auth/providers/discord'
 
 
 export const authOptions = {
