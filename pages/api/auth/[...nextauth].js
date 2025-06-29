@@ -13,7 +13,7 @@ export const authOptions = {
       // ============================
       // On force l’URL et le scope
       authorization: {
-        url: 'https://discord.com/oauth2/authorize?client_id=408435048656666636&response_type=code&redirect_uri=https%3A%2F%2Fflit-inventory.vercel.app%2Fapi%2Fauth%2Fcallback%2Fdiscord&scope=identify+email',
+        url: 'https://discord.com/api/oauth2/authorize',
         params: { scope: 'identify email' }
       },
       // ============================
