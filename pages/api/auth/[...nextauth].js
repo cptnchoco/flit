@@ -3,9 +3,31 @@
 import NextAuth from 'next-auth'
 import DiscordProvider from 'next-auth/providers/discord'
 import { SupabaseAdapter } from '@next-auth/supabase-adapter'
+import DiscordProvider from 'next-auth/providers/discord'
 
-// On enlève complètement l'import & l'instance createClient()
-// import { createClient } from '@supabase/supabase-js'
+export const authOptions = {
+  providers: [
+    DiscordProvider({
+      clientId: process.env.DISCORD_CLIENT_ID,
+      clientSecret: process.env.DISCORD_CLIENT_SECRET,
+      // ============================
+      // On force l’URL et le scope
+      authorization: {
+        url: 'https://discord.com/api/oauth2/authorize',
+        params: { scope: 'identify email' }
+      },
+      // ============================
+      profile(profile) {
+        return {
+          id: profile.id,
+          name: profile.username,
+          email: profile.email,
+          image: `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`
+        }
+      }
+    })
+  ],
+
 
 export const authOptions = {
   // 1) Adapter Supabase avec config – c'est ici qu'on passe URL & Service Key
