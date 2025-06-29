@@ -5,6 +5,7 @@ import DiscordProvider from 'next-auth/providers/discord'
 import { SupabaseAdapter } from '@next-auth/supabase-adapter'
 import DiscordProvider from 'next-auth/providers/discord'
 
+
 export const authOptions = {
   providers: [
     DiscordProvider({
@@ -28,8 +29,6 @@ export const authOptions = {
     })
   ],
 
-
-export const authOptions = {
   // 1) Adapter Supabase avec config – c'est ici qu'on passe URL & Service Key
   adapter: SupabaseAdapter({
     url: process.env.SUPABASE_URL,

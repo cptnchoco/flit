@@ -33,7 +33,7 @@ export default function Home({ session }) {
           <>
             <p>Vous n’êtes pas connecté.</p>
             <button
-              onClick={() => signIn('discord', { callbackUrl: '/' })}>
+              onClick={() => signIn('discord', { callbackUrl: '/' })}
               style={{
                 padding: '.5rem 1rem',
                 background: '#7289da',
