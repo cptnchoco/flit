@@ -30,7 +30,7 @@ export const authOptions = {
     url: process.env.NEXT_PUBLIC_SUPABASE_URL,
     secret: process.env.SUPABASE_SERVICE_ROLE_KEY,
     schema: 'public'
-  })
+  }),
   
 
   // 3) Stockage de la session en base
@@ -61,7 +61,7 @@ export const authOptions = {
 
   // 7) Debug (désactive en prod si tu veux)
   debug: process.env.NODE_ENV !== 'production',
-  debug: true
+  debug: true,
 }
 
 export default NextAuth(authOptions)
