@@ -1,22 +1,16 @@
 // pages/api/flit.js
-import { createClient } from '@supabase/supabase-js'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from './auth/[...nextauth]'
-import { SpeedInsights } from "@vercel/speed-insights/next"
-import { Analytics } from "@vercel/analytics/next"
-
-// côté serveur avec les droits Service Role
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+import { supabaseAdmin }    from '../../lib/supabaseAdmin'
+import { getServerSession }  from 'next-auth/next'
+import { authOptions }       from './auth/[...nextauth]'
 
 export default async function handler(req, res) {
+  // 1) Authentifier l’utilisateur
   const session = await getServerSession(req, res, authOptions)
-  if (!session) return res.status(401).json({ success:false, error:'Non authentifié' })
-
-  const { action, item, qty, targetId } = req.body
+  if (!session) {
+    return res.status(401).json({ success: false, error: 'Non authentifié' })
+  }
   const uid = session.user.id
+  const { action, item, qty, targetId } = req.body
 
   try {
     switch (action) {
@@ -27,7 +21,7 @@ export default async function handler(req, res) {
           .eq('user_id', uid)
           .order('created_at', { ascending: false })
         if (error) throw error
-        return res.json({ success:true, data })
+        return res.json({ success: true, data })
       }
       case 'ajout': {
         await supabaseAdmin
@@ -36,33 +30,36 @@ export default async function handler(req, res) {
         await supabaseAdmin
           .from('inventory_logs')
           .insert({ user_id: uid, action:'ajout', item, qty })
-        return res.json({ success:true, data:{ message:'Item ajouté' } })
+        return res.json({ success: true, data:{ message:'Item ajouté !' } })
       }
       case 'retrait': {
         await supabaseAdmin
           .from('inventory_items')
-          .update({ qty: qty * -1 })  // ou logic plus fine
+          .update({ qty: qty * -1 })
           .match({ user_id: uid, item })
         await supabaseAdmin
           .from('inventory_logs')
           .insert({ user_id: uid, action:'retrait', item, qty })
-        return res.json({ success:true, data:{ message:'Item retiré' } })
+        return res.json({ success: true, data:{ message:'Item retiré !' } })
       }
       case 'transfert': {
-        // décrémente pour l’émetteur
+        // 1) décrément pour l’expéditeur
         await supabaseAdmin
           .from('inventory_items')
           .update({ qty: qty * -1 })
           .match({ user_id: uid, item })
-        // incrémente pour le destinataire
+        // 2) upsert pour le destinataire
         await supabaseAdmin
           .from('inventory_items')
-          .upsert({ user_id: targetId, item, qty }, { onConflict:['user_id','item'] })
-        // log global
+          .upsert(
+            { user_id: targetId, item, qty },
+            { onConflict:['user_id','item'] }
+          )
+        // 3) log
         await supabaseAdmin
           .from('inventory_logs')
           .insert({ user_id: uid, action:'transfert', item, qty, target_id: targetId })
-        return res.json({ success:true, data:{ message:'Transfert effectué' } })
+        return res.json({ success: true, data:{ message:'Transfert effectué !' } })
       }
       default:
         return res.status(400).json({ success:false, error:'Action inconnue' })
