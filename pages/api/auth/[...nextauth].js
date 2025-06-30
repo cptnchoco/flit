@@ -5,7 +5,7 @@ import DiscordProvider from 'next-auth/providers/discord'
 import { SupabaseAdapter } from '@next-auth/supabase-adapter'
 
 export const authOptions = {
-  // 1) Les providers
+  // 1. Provider Discord
   providers: [
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID,
@@ -25,43 +25,46 @@ export const authOptions = {
     })
   ],
 
-  // 2) Persistance via Supabase
+  // 2. Adapter Supabase avec schéma et noms de tables explicites
   adapter: SupabaseAdapter({
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    url:    process.env.NEXT_PUBLIC_SUPABASE_URL,
     secret: process.env.SUPABASE_SERVICE_ROLE_KEY,
-    schema: 'public'
+    schema: 'public',
+    tableNames: {
+      users: 'nextauth_users',
+      accounts: 'nextauth_accounts',
+      sessions: 'nextauth_sessions',
+      verificationTokens: 'nextauth_verification_tokens'
+    }
   }),
-  
 
-  // 3) Stockage de la session en base
+  // 3. Sessions stockées en base
   session: {
     strategy: 'database',
     maxAge: 30 * 24 * 60 * 60,   // 30 jours
-    updateAge: 24 * 60 * 60       // 24 heures
+    updateAge: 24 * 60 * 60      // 24h
   },
 
-  // 4) Pages custom
+  // 4. Pages personnalisées
   pages: {
     signIn: '/auth/signin',
     error:  '/auth/error'
   },
 
-  // 5) Callbacks
+  // 5. Callbacks
   callbacks: {
     async session({ session, user }) {
-      // injecte l’ID et l’image dans la session côté client
       session.user.id    = user.id
       session.user.image = user.image
       return session
     }
   },
 
-  // 6) Secret pour chiffrer les tokens
+  // 6. Secret pour sécuriser les tokens
   secret: process.env.NEXTAUTH_SECRET,
 
-  // 7) Debug (désactive en prod si tu veux)
-  debug: process.env.NODE_ENV !== 'production',
-  debug: true,
+  // 7. Debug pour voir les erreurs dans les logs Vercel
+  debug: true
 }
 
 export default NextAuth(authOptions)
