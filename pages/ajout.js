@@ -1,12 +1,12 @@
 // pages/ajout.js
 
-import { useState } from 'react'
-import Layout from '../components/Layout'
-import Form from '../components/Form'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from './api/auth/[...nextauth]'
+import { useState }             from 'react'
+import Layout                   from '../components/Layout'
+import Form                     from '../components/Form'
+import { getServerSession }     from 'next-auth/next'
+import { authOptions }          from './api/auth/[...nextauth]'
 
-// 1) Vérification de session en SSR
+// 1) Vérifier la session en SSR et rediriger si non connecté
 export async function getServerSideProps(ctx) {
   const session = await getServerSession(ctx.req, ctx.res, authOptions)
   if (!session) {
@@ -17,31 +17,24 @@ export async function getServerSideProps(ctx) {
       }
     }
   }
-  return { props: { session } }
+  return { props: {} }
 }
 
-export default function Ajout({ session }) {
+export default function Ajout() {
   const [message, setMessage] = useState('')
 
-  // 2) Soumettre l’ajout via l’API
+  // 2) Envoi l'action "ajout" à ton API
   const handleSubmit = async ({ item, qty }) => {
-    setMessage('') // reset
+    setMessage('')
     try {
       const res = await fetch('/api/flit', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'ajout',
-          userId: session.user.id,
-          item,
-          qty
-        })
+        body:    JSON.stringify({ action: 'ajout', item, qty })
       })
-      const json = await res.json()
-      if (!res.ok || json.success === false) {
-        throw new Error(json.error || 'Erreur lors de l’ajout')
-      }
-      setMessage(json.data.message || 'Item ajouté avec succès !')
+      const { success, data, error } = await res.json()
+      if (!success) throw new Error(error || 'Erreur lors de l’ajout')
+      setMessage(data.message || 'Item ajouté avec succès !')
     } catch (err) {
       setMessage(`❌ ${err.message}`)
     }

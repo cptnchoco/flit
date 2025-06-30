@@ -1,10 +1,10 @@
 // pages/transfert.js
 
-import { useState } from 'react'
-import Layout from '../components/Layout'
-import Form from '../components/Form'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from './api/auth/[...nextauth]'
+import { useState }               from 'react'
+import Layout                     from '../components/Layout'
+import Form                       from '../components/Form'
+import { getServerSession }       from 'next-auth/next'
+import { authOptions }            from './api/auth/[...nextauth]'
 
 // 1) Vérification de session en SSR
 export async function getServerSideProps(ctx) {
@@ -17,38 +17,31 @@ export async function getServerSideProps(ctx) {
       }
     }
   }
-  return { props: { session } }
+  return { props: {} }
 }
 
-export default function Transfert({ session }) {
+export default function Transfert() {
   const [message, setMessage] = useState('')
 
+  // Définition des champs personnalisés pour le Form
   const transferFields = [
     { label: "Nom de l’item",    name: "item",     type: "text"   },
     { label: "Quantité",         name: "qty",      type: "number" },
     { label: "ID Discord cible", name: "targetId", type: "text"   }
   ]
 
-  // 2) Handler de transfert
+  // 2) Envoi de l’action 'transfert' à l’API
   const handleTransfer = async ({ item, qty, targetId }) => {
     setMessage('')
     try {
       const res = await fetch('/api/flit', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action:   'transfert',
-          userId:   session.user.id,
-          item,
-          qty,
-          targetId
-        })
+        body:    JSON.stringify({ action: 'transfert', item, qty, targetId })
       })
-      const json = await res.json()
-      if (!res.ok || json.success === false) {
-        throw new Error(json.error || 'Erreur lors du transfert')
-      }
-      setMessage(`✅ ${json.data.message}`)
+      const { success, data, error } = await res.json()
+      if (!success) throw new Error(error || 'Erreur lors du transfert')
+      setMessage(data.message || 'Transfert effectué !')
     } catch (err) {
       setMessage(`❌ ${err.message}`)
     }
@@ -65,14 +58,16 @@ export default function Transfert({ session }) {
       />
 
       {message && (
-        <p style={{
-          marginTop: '1rem',
-          padding: '.6rem 1rem',
-          background: message.startsWith('✅') ? '#e6ffed' : '#ffe6e6',
-          border: message.startsWith('✅') ? '1px solid #a3f7b5' : '1px solid #f5c2c7',
-          borderRadius: 4,
-          color: message.startsWith('✅') ? '#2e7d32' : '#721c24'
-        }}>
+        <p
+          style={{
+            marginTop: '1rem',
+            padding: '.6rem 1rem',
+            background: message.startsWith('❌') ? '#ffe6e6' : '#e6ffed',
+            border: message.startsWith('❌') ? '1px solid #f7b5b5' : '1px solid #a3f7b5',
+            borderRadius: 4,
+            color: message.startsWith('❌') ? '#c62828' : '#2e7d32'
+          }}
+        >
           {message}
         </p>
       )}

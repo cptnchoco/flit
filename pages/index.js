@@ -1,22 +1,21 @@
 // pages/index.js
-
-import Link from 'next/link'
-import Layout from '../components/Layout'
+import Link              from 'next/link'
+import Layout            from '../components/Layout'
 import { signIn, signOut } from 'next-auth/react'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from './api/auth/[...nextauth]'
+import { authOptions }     from './api/auth/[...nextauth]'
 
 export default function Home({ session }) {
   return (
     <Layout>
-      <header style={{ marginBottom: '2rem' }}>
+      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
         {session ? (
           <>
             <p>
               Bienvenue, <strong>{session.user.name}</strong> !
             </p>
             <button
-              onClick={() => signOut({ callbackUrl: '/' })}
+              onClick={() => signOut()}
               style={{
                 padding: '.5rem 1rem',
                 background: '#e53e3e',
@@ -33,7 +32,7 @@ export default function Home({ session }) {
           <>
             <p>Vous n’êtes pas connecté.</p>
             <button
-              onClick={() => signIn('discord', { callbackUrl: '/' })}
+              onClick={() => signIn('discord')}
               style={{
                 padding: '.5rem 1rem',
                 background: '#7289da',
@@ -49,71 +48,79 @@ export default function Home({ session }) {
         )}
       </header>
 
-      <h1>FLIT – Gestion d’inventaire Star Citizen</h1>
-      <p>
-        Gérez votre inventaire et vos logs de vol depuis Discord et une UI web Next.js.
-      </p>
+      <main style={{ textAlign: 'center' }}>
+        <h1>FLIT – Gestion d’inventaire Star Citizen</h1>
+        <p>
+          Gérez votre inventaire et vos logs de vol depuis Discord et une UI web Next.js.
+        </p>
 
-      <nav style={{ marginTop: '2rem', display: 'grid', gap: '1rem' }}>
-        <Link
-          href="/ajout"
-          style={{
-            padding: '1rem',
-            background: '#3182ce',
-            color: '#fff',
-            borderRadius: 4,
-            textAlign: 'center',
-            textDecoration: 'none'
-          }}
-        >
-          ➕ Ajouter un item
-        </Link>
-        <Link
-          href="/retrait"
-          style={{
-            padding: '1rem',
-            background: '#dd6b20',
-            color: '#fff',
-            borderRadius: 4,
-            textAlign: 'center',
-            textDecoration: 'none'
-          }}
-        >
-          ➖ Retirer un item
-        </Link>
-        <Link
-          href="/transfert"
-          style={{
-            padding: '1rem',
-            background: '#38a169',
-            color: '#fff',
-            borderRadius: 4,
-            textAlign: 'center',
-            textDecoration: 'none'
-          }}
-        >
-          🔄 Transférer un item
-        </Link>
-        <Link
-          href="/logs"
-          style={{
-            padding: '1rem',
-            background: '#805ad5',
-            color: '#fff',
-            borderRadius: 4,
-            textAlign: 'center',
-            textDecoration: 'none'
-          }}
-        >
-          📜 Voir les logs
-        </Link>
-      </nav>
+        <nav style={{ marginTop: '2rem', display: 'grid', gap: '1rem', maxWidth: 400, margin: '2rem auto' }}>
+          <Link href="/ajout">
+            <a
+              style={{
+                display: 'block',
+                padding: '1rem',
+                background: '#3182ce',
+                color: '#fff',
+                borderRadius: 4,
+                textDecoration: 'none'
+              }}
+            >
+              ➕ Ajouter un item
+            </a>
+          </Link>
+          <Link href="/retrait">
+            <a
+              style={{
+                display: 'block',
+                padding: '1rem',
+                background: '#dd6b20',
+                color: '#fff',
+                borderRadius: 4,
+                textDecoration: 'none'
+              }}
+            >
+              ➖ Retirer un item
+            </a>
+          </Link>
+          <Link href="/transfert">
+            <a
+              style={{
+                display: 'block',
+                padding: '1rem',
+                background: '#38a169',
+                color: '#fff',
+                borderRadius: 4,
+                textDecoration: 'none'
+              }}
+            >
+              🔄 Transférer un item
+            </a>
+          </Link>
+          <Link href="/logs">
+            <a
+              style={{
+                display: 'block',
+                padding: '1rem',
+                background: '#805ad5',
+                color: '#fff',
+                borderRadius: 4,
+                textDecoration: 'none'
+              }}
+            >
+              📜 Voir les logs
+            </a>
+          </Link>
+        </nav>
+      </main>
     </Layout>
   )
 }
 
-// Récupère la session côté serveur pour éviter l’usage de useSession() au build
+// SSR Fetch de la session pour qu'elle soit dispo au build
 export async function getServerSideProps(ctx) {
   const session = await getServerSession(ctx.req, ctx.res, authOptions)
-  return { props: { session } }
+  return {
+    props: { session }
+  }
 }

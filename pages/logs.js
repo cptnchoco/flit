@@ -1,12 +1,11 @@
 // pages/logs.js
+import { useState, useEffect }   from 'react'
+import Layout                    from '../components/Layout'
+import Table                     from '../components/Table'
+import { getServerSession }      from 'next-auth/next'
+import { authOptions }           from './api/auth/[...nextauth]'
 
-import { useState, useEffect } from 'react'
-import Layout from '../components/Layout'
-import Table from '../components/Table'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from './api/auth/[...nextauth]'
-
-// 1) Server‐side session check & redirect if not signed in
+// 1) SSR : redirige vers la page de connexion si pas de session
 export async function getServerSideProps(ctx) {
   const session = await getServerSession(ctx.req, ctx.res, authOptions)
   if (!session) {
@@ -17,33 +16,26 @@ export async function getServerSideProps(ctx) {
       }
     }
   }
-
-  return {
-    props: { session }
-  }
+  return { props: {} }
 }
 
-export default function Logs({ session }) {
+export default function Logs() {
   const [logs, setLogs]       = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError]     = useState('')
 
-  // 2) Fetch logs once session is guaranteed
+  // 2) Récupère les logs via ton API interne
   useEffect(() => {
-    const fetchLogs = async () => {
-      setLoading(true)
-      setError(null)
+    async function fetchLogs() {
       try {
         const res = await fetch('/api/flit', {
-          method: 'POST',
+          method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'logs' })
+          body:    JSON.stringify({ action: 'logs' })
         })
-        const json = await res.json()
-        if (!res.ok || json.success === false) {
-          throw new Error(json.error || 'Erreur de récupération des logs')
-        }
-        setLogs(json.data)
+        const { success, data, error } = await res.json()
+        if (!success) throw new Error(error || 'Erreur de récupération')
+        setLogs(data)
       } catch (err) {
         setError(err.message)
       } finally {
@@ -55,13 +47,9 @@ export default function Logs({ session }) {
 
   return (
     <Layout>
-      <h2>Logs d’inventaire</h2>
+      <h2>Historique des actions</h2>
 
-      {error && (
-        <p style={{ color: 'red', marginBottom: '1rem' }}>
-          {error}
-        </p>
-      )}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
 
       {loading ? (
         <p>Chargement des logs…</p>
@@ -69,9 +57,11 @@ export default function Logs({ session }) {
         <Table
           data={logs}
           columns={[
-            { key: 'item',        label: 'Item' },
-            { key: 'qty',         label: 'Quantité' },
-            { key: 'inserted_at', label: 'Date' }
+            { key: 'action',     label: 'Action' },
+            { key: 'item',       label: 'Item' },
+            { key: 'qty',        label: 'Quantité' },
+            { key: 'target_id',  label: 'Vers (ID destinataire)' },
+            { key: 'created_at', label: 'Date' }
           ]}
         />
       )}

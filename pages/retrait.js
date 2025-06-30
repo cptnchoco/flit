@@ -1,47 +1,40 @@
 // pages/retrait.js
 
 import { useState } from 'react'
-import Layout from '../components/Layout'
-import Form from '../components/Form'
+import Layout       from '../components/Layout'
+import Form         from '../components/Form'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from './api/auth/[...nextauth]'
+import { authOptions }      from './api/auth/[...nextauth]'
 
-// 1) Vérification de session en SSR
+// 1) Redirige côté serveur si pas connecté
 export async function getServerSideProps(ctx) {
   const session = await getServerSession(ctx.req, ctx.res, authOptions)
   if (!session) {
     return {
       redirect: {
         destination: '/api/auth/signin',
-        permanent: false
-      }
+        permanent: false,
+      },
     }
   }
-  return { props: { session } }
+  return { props: {} }
 }
 
-export default function Retrait({ session }) {
+export default function Retrait() {
   const [message, setMessage] = useState('')
 
-  // 2) Envoi de la requête retrait
+  // 2) Envoie l’action 'retrait' à ton API
   const handleSubmit = async ({ item, qty }) => {
-    setMessage('') // réinitialise le message
+    setMessage('')
     try {
       const res = await fetch('/api/flit', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'retrait',
-          userId: session.user.id,
-          item,
-          qty
-        })
+        body:    JSON.stringify({ action: 'retrait', item, qty }),
       })
-      const json = await res.json()
-      if (!res.ok || json.success === false) {
-        throw new Error(json.error || 'Erreur lors du retrait')
-      }
-      setMessage(json.data.message || `✅ Retrait de ${qty} × ${item} effectué !`)
+      const { success, data, error } = await res.json()
+      if (!success) throw new Error(error || 'Erreur lors du retrait')
+      setMessage(data.message || `✅ Retrait de ${qty} × ${item} effectué !`)
     } catch (err) {
       setMessage(`❌ ${err.message}`)
     }
@@ -62,7 +55,7 @@ export default function Retrait({ session }) {
             border: '1px solid',
             borderColor: message.startsWith('❌') ? '#f7b5b5' : '#ffd8a8',
             borderRadius: 4,
-            color: message.startsWith('❌') ? '#c62828' : '#9c4221'
+            color: message.startsWith('❌') ? '#c62828' : '#9c4221',
           }}
         >
           {message}
