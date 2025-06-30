@@ -27,16 +27,17 @@ export const authOptions = {
 
   // 2. Adapter Supabase avec schéma et noms de tables explicites
   adapter: SupabaseAdapter({
-    url:    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL,
     secret: process.env.SUPABASE_SERVICE_ROLE_KEY,
     schema: 'public',
     tableNames: {
-      users: 'nextauth_users',
-      accounts: 'nextauth_accounts',
-      sessions: 'nextauth_sessions',
-      verificationTokens: 'nextauth_verification_tokens'
+      users: 'users',
+      accounts: 'accounts',
+      sessions: 'sessions',
+      verificationTokens: 'verification_tokens'
     }
   }),
+  
 
   // 3. Sessions stockées en base
   session: {
