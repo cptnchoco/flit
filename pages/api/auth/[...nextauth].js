@@ -27,9 +27,11 @@ export const authOptions = {
 
   // 2) Persistance via Supabase
   adapter: SupabaseAdapter({
-    url:    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    secret: process.env.SUPABASE_SERVICE_ROLE_KEY
-  }),
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    secret: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    schema: 'public'
+  })
+  
 
   // 3) Stockage de la session en base
   session: {
@@ -58,7 +60,8 @@ export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 
   // 7) Debug (désactive en prod si tu veux)
-  debug: process.env.NODE_ENV !== 'production'
+  debug: process.env.NODE_ENV !== 'production',
+  debug: true
 }
 
 export default NextAuth(authOptions)
